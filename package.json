@@ -12,6 +12,7 @@
     "generate:nexus": "yarn ts-node --transpile-only src/server/nexusSchema",
     "codegen": "graphql-codegen --config codegen.yml",
     "db-dev": "prisma migrate dev",
+    "db-prod": "prisma db push",
     "db-deploy": "prisma migrate deploy",
     "db-reset": "prisma migrate reset",
     "db-seed": "prisma db seed --preview-feature",

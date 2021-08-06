@@ -1,5 +1,5 @@
 query me {
-  me {
+  findManyUser {
     id
     name
     email

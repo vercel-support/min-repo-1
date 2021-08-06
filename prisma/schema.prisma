@@ -1,52 +1,1770 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["selectRelationCount", "referentialActions"]
+}
+
 datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["selectRelationCount", "nApi", "referentialActions"]
+// Next-Auth Data Model Start
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  expires      DateTime
+  sessionToken String   @unique
+  accessToken  String   @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id])
 }
 
-// models examples
-model User {
-  id        Int       @id @default(autoincrement())
-  createdAt DateTime  @default(now())
-  email     String    @unique
-  name      String?
-  password  String
-  posts     Post[]
-  group     Group?    @relation(fields: [groupId], onDelete: SetNull, references: [id])
-  groupId   Int?
-  comments  Comment[]
+model VerificationRequest {
+  id         String   @id @default(cuid())
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([identifier, token])
 }
+
+// Next-Auth Data Model End
 
 model Post {
-  id        Int       @id @default(autoincrement())
+  id        String    @id @default(cuid())
   published Boolean   @default(false)
   title     String
-  author    User?     @relation(fields: [authorId], onDelete: Cascade, references: [id])
-  authorId  Int?
+  author    User?     @relation(fields: [authorId], references: [id])
+  authorId  String?
   comments  Comment[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 }
 
 model Comment {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(cuid())
   contain   String
-  post      Post     @relation(fields: [postId], onDelete: Cascade, references: [id])
-  postId    Int
-  author    User?    @relation(fields: [authorId], onDelete: SetNull, references: [id])
-  authorId  Int?
+  post      Post     @relation(fields: [postId], references: [id])
+  postId    String
+  author    User?    @relation(fields: [authorId], references: [id])
+  authorId  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Group {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(cuid())
   name      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  users     User[]
+  user      User[]
+}
+
+// ---------------------
+
+model User {
+  id                       String      @id @default(cuid())
+  name                     String?
+  email                    String?     @unique
+  emailVerified            DateTime?
+  image                    String?
+  createdAt                DateTime    @default(now())
+  updatedAt                DateTime    @updatedAt
+  isAdmin                  Boolean?    @default(false)
+  aboutMe                  String?
+  isActive                 Boolean?    @default(false)
+  address                  String?
+  receivesAdminInfoEmails  Boolean?
+  alias                    String?
+  forecastEnabled          Boolean?
+  // bannerPhoto              Photo?                 @relation(fields: [bannerPhotoId], references: [id])
+  // bannerPhotoId            String?
+  // callCenterId                      String?
+  digestFrequency          String?
+  companyName              String?
+  contact                  Contact?    @relation(name: "UserContact", fields: [contactId], references: [id])
+  contactId                String?
+  // defaultGroupNotificationFrequency String?
+  // delegatedApproverId               String?
+  department               String?
+  division                 String?
+  // emailEncodingKey                  String?
+  senderEmail              String?
+  senderName               String?
+  signature                String?
+  employeeNumber           String?
+  endDay                   String?
+  extension                String?
+  fax                      String?
+  isProfilePhotoActive     Boolean?
+  // workspaceId                       String?
+  individual               Individual? @relation(name: "UserIndividual", fields: [individualId], references: [id])
+  individualId             String?
+  receivesInfoEmails       Boolean?
+  userSubtype              String?
+  isSystemControlled       Boolean?
+  language                 Language?   @relation(name: "UserLanguage", fields: [languageId], references: [id])
+  languageId               String?
+  // localeSidKey             String? // Locale?
+  // managerId                String?
+  mobilePhone              String?
+  communityNickname        String?
+  outOfOfficeMessage       String?
+  passwordResetAttempt     Boolean?
+  passwordResetLockoutDate String?
+  phone                    String?
+  // profileId                String? ?
+  // referrerScore            String?
+  // userRoleId               String? // ROLES
+  federationIdentifier     String?
+  isExtIndicatorVisible    Boolean?
+  startDay                 String?
+  stayInTouchNote          String?
+  stayInTouchSignature     String?
+  stayInTouchSubject       String?
+  timeZone                 TimeZone?   @relation(name: "UserTimeZone", fields: [timeZoneId], references: [id])
+  timeZoneId               String?
+  title                    String?
+  mediumBannerPhotoUrl     String?
+  bannerPhotoUrl           String?
+  smallBannerPhotoUrl      String?
+  mediumPhotoUrl           String?
+  username                 String?
+  sessions                 Session[]
+  posts                    Post[]
+  group                    Group?      @relation(fields: [groupId], references: [id])
+  groupId                  String?
+
+  // --------- RELATIONSHIPS PERTAINING TO USER -------------
+
+  comments                               Comment[]
+  OperatingHoursCreatedByUser            OperatingHours[]       @relation("OperatingHoursCreatedByUser")
+  OperatingHoursLastModifiedByUser       OperatingHours[]       @relation("OperatingHoursLastModifiedByUser")
+  ContractCreatedByUser                  Contract[]             @relation("ContractCreatedByUser")
+  ContractLastModifiedByUser             Contract[]             @relation("ContractLastModifiedByUser")
+  ContractCustomerSignedByUser           Contract[]             @relation("ContractCustomerSignedByUser")
+  ContractOwner                          Contract[]             @relation("ContractOwner")
+  ContractCompanySignedByUser            Contract[]             @relation("ContractCompanySignedByUser")
+  ContractActivatedByUser                Contract[]             @relation("ContractActivatedByUser")
+  CampaignMemberLastModifiedByUser       CampaignMember[]       @relation("CampaignMemberLastModifiedByUser")
+  CampaignMemberCreatedByUser            CampaignMember[]       @relation("CampaignMemberCreatedByUser")
+  CampaignLastModifiedByUser             Campaign[]             @relation("CampaignLastModifiedByUser")
+  CampaignCreatedByUser                  Campaign[]             @relation("CampaignCreatedByUser")
+  OpportunityOwner                       Opportunity[]          @relation("OpportunityOwner")
+  OpportunityLastModifiedByUser          Opportunity[]          @relation("OpportunityLastModifiedByUser")
+  OpportunityReferredByUser              Opportunity[]          @relation("OpportunityReferredByUser")
+  OpportunityCreatedByUser               Opportunity[]          @relation("OpportunityCreatedByUser")
+  FinancialGoalOwner                     FinancialGoal[]        @relation("FinancialGoalOwner")
+  FinancialGoalLastModifiedByUser        FinancialGoal[]        @relation("FinancialGoalLastModifiedByUser")
+  FinancialGoalCreatedByUser             FinancialGoal[]        @relation("FinancialGoalCreatedByUser")
+  AssetsAndLiabilitiesOwner              AssetsAndLiabilities[] @relation("AssetsAndLiabilitiesOwner")
+  AssetsAndLiabilitiesLastModifiedByUser AssetsAndLiabilities[] @relation("AssetsAndLiabilitiesLastModifiedByUser")
+  SecuritiesOwner                        Securities[]           @relation("SecuritiesOwner")
+  SecuritiesLastModifiedByUser           Securities[]           @relation("SecuritiesLastModifiedByUser")
+  SecuritiesCreatedByUser                Securities[]           @relation("SecuritiesCreatedByUser")
+  AssetLastModifiedByUser                Asset[]                @relation("AssetLastModifiedByUser")
+  AssetCreatedByUser                     Asset[]                @relation("AssetCreatedByUser")
+  FinancialHoldingLastModifiedByUser     FinancialHolding[]     @relation("FinancialHoldingLastModifiedByUser")
+  FinancialHoldingCreatedByUser          FinancialHolding[]     @relation("FinancialHoldingCreatedByUser")
+  FinancialAccountRoleLastModifiedByUser FinancialAccountRole[] @relation("FinancialAccountRoleLastModifiedByUser")
+  FinancialAccountOwner                  FinancialAccount[]     @relation("FinancialAccountOwner")
+  FinancialAccountLastModifiedByUser     FinancialAccount[]     @relation("FinancialAccountLastModifiedByUser")
+  FinancialAccountCreatedByUser          FinancialAccount[]     @relation("FinancialAccountCreatedByUser")
+  IndividualLastModifiedByUser           Individual[]           @relation("IndividualLastModifiedByUser")
+  IndividualOwner                        Individual[]           @relation("IndividualOwner")
+  IndividualCreatedByUser                Individual[]           @relation("IndividualCreatedByUser")
+  ContactReportsToUser                   Contact[]              @relation("ContactReportsToUser")
+  ContactCreatedByUser                   Contact[]              @relation("ContactCreatedByUser")
+  ContactOwner                           Contact[]              @relation("ContactOwner")
+  ContactLastModifiedByUser              Contact[]              @relation("ContactLastModifiedByUser")
+  AccountOwner                           Account[]              @relation("AccountOwner")
+  AccountUser                            Account[]              @relation("AccountUser")
+  AccountLastModifiedByUser              Account[]              @relation("AccountLastModifiedByUser")
+  AccountCreatedByUser                   Account[]              @relation("AccountCreatedByUser")
+
+}
+
+model Account {
+  // Auth Information Start
+  id                                   String                    @id @default(cuid())
+  providerType                         String
+  providerId                           String
+  providerAccountId                    String
+  refreshToken                         String?
+  accessToken                          String?
+  accessTokenExpires                   DateTime?
+  createdAt                            DateTime                  @default(now())
+  updatedAt                            DateTime                  @updatedAt
+  // Auth Information End
+  user                                 User                      @relation(name: "AccountUser", fields: [userId], references: [id])
+  userId                               String
+  accountNumber                        String?
+  owner                                User?                     @relation(name: "AccountOwner", fields: [ownerId], references: [id])
+  ownerId                              String?
+  accountRecordType                    AccountRecordType?        @relation(name: "AccountRecordType", fields: [accountRecordTypeId], references: [id])
+  accountRecordTypeId                  String?
+  site                                 String?
+  accountSource                        LeadSource?               @relation(name: "AccountLeadSource", fields: [accountSourceId], references: [id])
+  accountSourceId                      String?
+  affiliations                         String?
+  age                                  Int?
+  ageAsText                            String?
+  annualIncome                         Int?
+  annualRevenue                        Int?
+  personAssistantName                  String?
+  personAssistantPhone                 String?
+  aum                                  Int?
+  bankNumber                           String?
+  billingAddress                       String?
+  personBirthdate                      DateTime?
+  borrowingHistory                     String?
+  borrowingPriorities                  String?
+  branchCode                           BranchCode?               @relation(name: "AccountBranchCode", fields: [branchCodeId], references: [id])
+  branchCodeId                         String?
+  branchName                           String?                   @default("Slocum Wealth Management")
+  clientCategory                       ClientCategory?           @relation(name: "AccountClientCategory", fields: [clientCategoryId], references: [id])
+  clientCategoryId                     String?
+  citizenship                          String?
+  claimsOnHouseholdPolicies            String?
+  communicationPreferences             CommunicationPreferences? @relation(name: "AccountCommunicationPreferences", fields: [communicationPreferencesId], references: [id])
+  communicationPreferencesId           String?
+  contactPreference                    ContactPreference?        @relation(name: "AccountContactPreference", fields: [contactPreferenceId], references: [id])
+  contactPreferenceId                  String?
+  conversionDateTime                   DateTime?
+  countryOfResidence                   String?
+  countryOfBirth                       Country?                  @relation(name: "AccountCountryOfBirth", fields: [countryOfBirthId], references: [id])
+  countryOfBirthId                     String?
+  createdBy                            User?                     @relation(name: "AccountCreatedByUser", fields: [createdById], references: [id])
+  createdById                          String?
+  createdFromLead                      Boolean?
+  creditRating                         CreditRating?             @relation(name: "AccountCreditRating", fields: [creditRatingId], references: [id])
+  creditRatingId                       String?
+  creditScore                          Int?
+  currentEmployer                      String?
+  // customerId                           String?
+  // customerSegment                      CustomerSegment?          @relation(name: "AccountCustomerSegment", fields: [customerSegmentId], references: [id])
+  // customerSegmentId                    String?
+  customerTimeZone                     TimeZone?                 @relation(name: "AccountTimeZone", fields: [customerTimeZoneId], references: [id])
+  customerTimeZoneId                   String?
+  // customerType                         CustomerType?             @relation(fields: [customerTypeId], references: [id])
+  // customerTypeId                       String?
+  // jigsaw                               String? // ?
+  personDepartment                     String?
+  description                          String?
+  personDoNotCall                      Boolean?
+  personEmail                          String?
+  personHasOptedOutOfEmail             Boolean?
+  emailVerified                        Boolean?
+  employedSince                        DateTime?
+  numberOfEmployees                    Int?
+  referredByContact                    Contact?                  @relation(name: "AccountReferredByContact", fields: [referredByContactId], references: [id])
+  referredByContactId                  String?
+  facebook                             String?
+  fax                                  String?
+  personHasOptedOutOfFax               Boolean?
+  faxVerified                          Boolean?
+  financialInterests                   FinancialInterests?       @relation(name: "AccountFinancialInterests", fields: [financialInterestsId], references: [id])
+  financialInterestsId                 String?
+  gender                               Gender?                   @relation(name: "AccountGender", fields: [genderId], references: [id])
+  genderId                             String?
+  homeOwnership                        HomeOwnership?            @relation(name: "Account", fields: [homeOwnershipId], references: [id])
+  homeOwnershipId                      String?
+  personHomePhone                      String?
+  homePhoneVerified                    Boolean?
+  householdPolicies                    String?
+  notes                                String?
+  individual                           Individual?               @relation(name: "AccountIndividual", fields: [individualId], references: [id])
+  individualId                         String?
+  individualType                       IndividualType?           @relation(name: "AccountIndividualType", fields: [individualTypeId], references: [id])
+  individualTypeId                     String?
+  industry                             Industry?                 @relation(name: "AccountIndustry", fields: [industryId], references: [id])
+  industryId                           String?
+  insuranceCustomerSince               DateTime?
+  // referredByUser                       User?                     @relation(name: "Account",fields: [referredByUserId], references: [id])
+  // referredByUserId                     String?
+  investmentExperience                 InvestmentExperience?     @relation(name: "AccountInvestmentExperience", fields: [investmentExperienceId], references: [id])
+  investmentExperienceId               String?
+  investmentObjectives                 InvestmentObjectives?     @relation(name: "AccountInvestmentObjectives", fields: [investmentObjectivesId], references: [id])
+  investmentObjectivesId               String?
+  kycDate                              DateTime?
+  kycStatus                            KycStatus?                @relation(name: "AccountKycStatus", fields: [kycStatusId], references: [id])
+  kycStatusId                          String?
+  languagesSpoken                      String?
+  lastInteraction                      DateTime?
+  lastModifiedBy                       User?                     @relation(name: "AccountLastModifiedByUser", fields: [lastModifiedById], references: [id])
+  lastModifiedById                     String?
+  lastReview                           DateTime?
+  personLastCURequestDate              DateTime?
+  personLastCUUpdateDate               DateTime?
+  lastTransactionDate                  DateTime?
+  lastTransactionDateJointOwner        DateTime?
+  lastTransactionDatePrimaryOwner      DateTime?
+  lastUsedChannel                      ChannelInterface?         @relation(name: "AccountLastUsedChannelInterface", fields: [lastUsedChannelId], references: [id])
+  lastUsedChannelId                    String?
+  // personLeadSource                     LeadSource?               @relation(name: "AccountLeadSource", fields: [personLeadSourceId], references: [id])
+  // personLeadSourceId                   String?
+  lifetimeValue                        Int?
+  linkedin                             String?
+  mailingAddress                       String?
+  personMailingAddress                 String?
+  maritalStatus                        MaritalStatus?            @relation(name: "AccountMaritalStatus", fields: [maritalStatusId], references: [id])
+  maritalStatusId                      String?
+  marketingOptOut                      Boolean?
+  // marketingSegment                     String?
+  personMobilePhone                    String?
+  mobileVerified                       Boolean?
+  mostUsedChannel                      ChannelInterface?         @relation(name: "AccountMostUsedChannelInterface", fields: [mostUsedChannelId], references: [id])
+  mostUsedChannelId                    String?
+  motherMaidenName                     String?
+  netWorth                             Int?
+  nextInteraction                      DateTime?
+  nextLifeEvent                        LifeEvent?                @relation(name: "AccountLifeEvent", fields: [nextLifeEventId], references: [id])
+  nextLifeEventId                      String?
+  nextReview                           String?
+  numberOfChildren                     Int?
+  numberOfDependents                   Int?
+  totalNumberOfFinAccountsJointOwner   Int?
+  totalNumberOfFinAccountsPrimaryOwner Int?
+  occupation                           String?
+  operatingHours                       OperatingHours?           @relation(name: "AccountOperatingHours", fields: [operatingHoursId], references: [id])
+  operatingHoursId                     String?
+  otherAddress                         String?
+  personOtherAddress                   String?
+  personOtherPhone                     String?
+  ownership                            Ownership?                @relation(name: "AccountOwnership", fields: [ownershipId], references: [id])
+  ownershipId                          String?
+  // parentId                             String? // account to account relationship, need more research
+  personalInterests                    PersonalInterests?        @relation(name: "AccountPersonalInterests", fields: [personalInterestsId], references: [id])
+  personalInterestsId                  String?
+  phone                                String?
+  preferredName                        String?
+  primaryAddressIsBilling              Boolean?
+  primaryAddressIsMailing              Boolean?
+  primaryAddressIsOther                Boolean?
+  primaryAddressIsShipping             Boolean?
+  primaryCitizenship                   Country?                  @relation(name: "AccountPrimaryCitizenshipCountry", fields: [primaryCitizenshipId], references: [id])
+  primaryCitizenshipId                 String?
+  primaryContact                       Contact?                  @relation(name: "AccountPrimaryContact", fields: [primaryContactId], references: [id])
+  primaryContactId                     String?
+  primaryLanguage                      Language?                 @relation(name: "AccountPrimaryLanguage", fields: [primaryLanguageId], references: [id])
+  primaryLanguageId                    String?
+  rating                               Rating?                   @relation(name: "AccountRating", fields: [ratingId], references: [id])
+  ratingId                             String?
+  referrerScore                        Int?
+  lengthOfRelationship                 Int?
+  relationshipStartDate                DateTime?
+  reviewFrequency                      ReviewFrequency?          @relation(name: "AccountReviewFrequency", fields: [reviewFrequencyId], references: [id])
+  reviewFrequencyId                    String?
+  riskTolerance                        RiskTolerance?            @relation(name: "AccountRiskTolerance", fields: [riskToleranceId], references: [id])
+  riskToleranceId                      String?
+  secondaryCitizenship                 Country?                  @relation(name: "AccountSecondaryCitizenshipCountry", fields: [secondaryCitizenshipId], references: [id])
+  secondaryCitizenshipId               String?
+  secondaryLanguage                    Language?                 @relation(name: "AccountSecondaryLanguage", fields: [secondaryLanguageId], references: [id])
+  secondaryLanguageId                  String?
+  serviceModel                         ServiceModel?             @relation(name: "AccountServiceModel", fields: [serviceModelId], references: [id])
+  serviceModelId                       String?
+  shippingAddress                      String?
+  sic                                  String?
+  sicDesc                              String?
+  sourceSystemId                       String? // not sure if needed
+  lastFourDigitSSN                     String? // make sure it is encrypted
+  SSN                                  String? // make sure it is encrypted
+  status                               AccountStatus?            @relation(name: "AccountStatus", fields: [statusId], references: [id])
+  statusId                             String?
+  taxBracket                           TaxBracket?               @relation(name: "AccountTaxBracket", fields: [taxBracketId], references: [id])
+  taxBracketId                         String?
+  taxId                                String?
+  // tickerSymbol                         String? // ????
+  timeHorizon                          TimeHorizon?              @relation(name: "AccountTimeHorizon", fields: [timeHorizonId], references: [id])
+  timeHorizonId                        String?
+  personTitle                          String?
+  totalAUMJointOwner                   Int?
+  totalAUMPrimaryOwner                 Int?
+  totalBankDeposits                    Int?
+  totalBankDepositsJointOwner          Int?
+  totalBankDepositsPrimaryOwner        Int?
+  totalClaimAmountPaid                 Int?
+  totalFinancialAccounts               Int?
+  totalFinAcctsJointOwner              Int?
+  totalFinAcctsPrimaryOwner            Int?
+  totalHeldFinAcctsJointOwner          Int?
+  totalHeldFinAcctsPrimaryOwner        Int?
+  totalHouseholdPremiums               Int?
+  totalInsurance                       Int?
+  totalInsuranceJointOwner             Int?
+  totalInsurancePrimaryOwner           Int?
+  totalInvestments                     Int?
+  totalInvestmentsJointOwner           Int?
+  totalInvestmentsPrimaryOwner         Int?
+  totalLiabilities                     Int?
+  totalLiabilitiesJointOwner           Int?
+  totalLiabilitiesPrimaryOwner         Int?
+  totalNonfinancialAssets              Int?
+  totalNonfinancialAssetsJointOwner    Int?
+  totalNonfinancialAssetsPrimaryOwner  Int?
+  totalNumberOfFinAccounts             Int?
+  totalOutstandingCredit               Int?
+  totalOutstandingCreditJointOwner     Int?
+  totalOutstandingCreditPrimaryOwner   Int?
+  totalPremium                         Int?
+  totalRevenue                         Int?
+  twitter                              String?
+  type                                 AccountType?              @relation(name: "AccountType", fields: [typeId], references: [id])
+  typeId                               String?
+  walletShare                          Int?
+  website                              String?
+  weddingAnniversary                   DateTime?
+
+  // --------- RELATIONSHIPS PERTAINING TO ACCOUNT -------------
+
+  ContractAccount                        Contract[]             @relation("ContractAccount")
+  OpportunityHousehold                   Opportunity[]          @relation("OpportunityHousehold")
+  OpportunityAccount                     Opportunity[]          @relation("OpportunityAccount")
+  FinancialGoalPrimaryOwner              FinancialGoal[]        @relation("FinancialGoalPrimaryOwner")
+  FinancialGoalHousehold                 FinancialGoal[]        @relation("FinancialGoalHousehold")
+  AssetsAndLiabilitiesPrimaryOwner       AssetsAndLiabilities[] @relation("AssetsAndLiabilitiesPrimaryOwner")
+  AssetsAndLiabilitiesJointOwner         AssetsAndLiabilities[] @relation("AssetsAndLiabilitiesJointOwner")
+  AssetsAndLiabilitiesHousehold          AssetsAndLiabilities[] @relation("AssetsAndLiabilitiesHousehold")
+  AssetServicedByAccount                 Asset[]                @relation("AssetServicedByAccount")
+  AssetProvidedByAccount                 Asset[]                @relation("AssetProvidedByAccount")
+  AssetOwner                             Asset[]                @relation("AssetOwner")
+  AssetAccount                           Asset[]                @relation("AssetAccount")
+  FinancialHoldingPrimaryOwnerAccount    FinancialHolding[]     @relation("FinancialHoldingPrimaryOwnerAccount")
+  FinancialHoldingHouseholdAccount       FinancialHolding[]     @relation("FinancialHoldingHouseholdAccount")
+  FinancialAccountPrimaryOwner           FinancialAccount[]     @relation("FinancialAccountPrimaryOwner")
+  FinancialAccountOverdraftLinkedAccount FinancialAccount[]     @relation("FinancialAccountOverdraftLinkedAccount")
+  FinancialAccountJointOwner             FinancialAccount[]     @relation("FinancialAccountJointOwner")
+  FinancialAccountHousehold              FinancialAccount[]     @relation("FinancialAccountHousehold")
+
+  @@unique([providerId, providerAccountId])
+}
+
+model AccountRecordType {
+  id          String @id @default(cuid())
+  name        String @default("Individual") // Business: A business or an organization. Individual: A person who is a prospect or a client. Institution: An institution that is a prospect or a client.
+  description String @default("A person who is a prospect or a client")
+
+  // ------------- RELATIONSHIPS PERTAINING TO ACCOUNT RECORD TYPE -------------
+
+  AccountRecordType Account[] @relation("AccountRecordType")
+}
+
+model AccountStatus {
+  id   String  @id @default(cuid())
+  name String? // Prospect, Onboarding, Active, Deceased, Inactive
+
+  // ------------- RELATIONSHIPS PERTAINING TO ACCOUNT STATUS -------------
+
+  AccountStatus Account[] @relation("AccountStatus")
+}
+
+model AccountType {
+  id   String  @id @default(cuid())
+  name String? // Analyst, Competitor, Customer, Integrator, Investor, Partner, Press, Prospect, Reseller, Other
+
+  // ------------- RELATIONSHIPS PERTAINING TO ACCOUNT TYPE -------------
+
+  AccountType Account[] @relation("AccountType")
+}
+
+model Contact {
+  id                         String                    @id @default(cuid())
+  accountId                  String?
+  affiliations               String?
+  age                        Int?
+  ageAsText                  String?
+  annualIncome               Int?
+  assistantName              String?
+  assistantPhone             String?
+  billingAddress             String?
+  birthDate                  DateTime?
+  citizenship                String?
+  communicationPreferences   CommunicationPreferences? @relation(name: "ContactCommunicationPreferences", fields: [communicationPreferencesId], references: [id])
+  communicationPreferencesId String?
+  owner                      User?                     @relation(name: "ContactOwner", fields: [ownerId], references: [id])
+  ownerId                    String?
+  contactPreference          ContactPreference?        @relation(name: "ContactPreference", fields: [contactPreferenceId], references: [id])
+  contactPreferenceId        String?
+  contactRecordType          ContactRecordType?        @relation(name: "ContactRecordType", fields: [contactRecordTypeId], references: [id])
+  contactRecordTypeId        String?
+  countryOfResidence         Country?                  @relation(name: "ContactCountryOfResidence", fields: [countryOfResidenceId], references: [id])
+  countryOfResidenceId       String?
+  countryOfBirth             Country?                  @relation(name: "ContactCountryOfBirth", fields: [countryOfBirthId], references: [id])
+  countryOfBirthId           String?
+  createdBy                  User?                     @relation(name: "ContactCreatedByUser", fields: [createdById], references: [id])
+  createdById                String?
+  createdAt                  DateTime?                 @default(now())
+  updatedAt                  DateTime?                 @updatedAt
+  createdFromLead            LeadSource?               @relation(name: "ContactCreatedFromLeadSource", fields: [createdFromLeadId], references: [id])
+  createdFromLeadId          String?
+  currentEmployer            String?
+  customerTimeZone           TimeZone?                 @relation(name: "ContactTimeZone", fields: [customerTimeZoneId], references: [id])
+  customerTimeZoneId         String?
+  // jigsaw
+  department                 String?
+  description                String?
+  doNotCall                  Boolean?
+  email                      String?
+  hasOptedOutOfEmail         Boolean?
+  emailVerified              Boolean?
+  employedSince              DateTime?
+  facebook                   String?
+  fax                        String?
+  hasOptedOutOfFax           Boolean?
+  faxVerified                Boolean?
+  gender                     Gender?                   @relation(name: "ContactGender", fields: [genderId], references: [id])
+  genderId                   String?
+  homeOwnership              HomeOwnership?            @relation(name: "ContactHomeOwnership", fields: [homeOwnershipId], references: [id])
+  homeOwnershipId            String?
+  homePhone                  String?
+  homePhoneVerified          Boolean?
+  individual                 Individual?               @relation(name: "ContactIndividual", fields: [individualId], references: [id])
+  individualId               String?
+  individualType             IndividualType?           @relation(name: "ContactIndividualType", fields: [individualTypeId], references: [id])
+  individualTypeId           String?
+  languagesSpoken            Language?                 @relation(name: "ContactLanguagesSpoken", fields: [languagesSpokenId], references: [id])
+  languagesSpokenId          String?
+  lastModifiedBy             User?                     @relation(name: "ContactLastModifiedByUser", fields: [lastModifiedById], references: [id])
+  lastModifiedById           String?
+  lastCURequestDate          DateTime?
+  lastCUUpdateDate           DateTime?
+  leadSource                 LeadSource?               @relation(name: "ContactLeadSource", fields: [leadSourceId], references: [id])
+  leadSourceId               String?
+  linkedin                   String?
+  mailingAddress             String?
+  mailingAddressVerified     Boolean?
+  maritalStatus              MaritalStatus?            @relation(name: "ContactMaritalStatus", fields: [maritalStatusId], references: [id])
+  maritalStatusId            String?
+  marketingOptOut            Boolean?
+  mobilePhone                String?
+  mobileVerified             Boolean?
+  mostUsedChannel            ChannelInterface?         @relation(name: "ContactMostUsedChannelInterface", fields: [mostUsedChannelId], references: [id])
+  mostUsedChannelId          String?
+  motherMaidenName           String?
+  name                       String?
+  nextLifeEvent              LifeEvent?                @relation(name: "ContactLifeEvent", fields: [nextLifeEventId], references: [id])
+  nextLifeEventId            String?
+  numberOfChildren           Int?
+  numberOfDependents         Int?
+  occupation                 String?
+  otherAddress               String?
+  otherAddressVerified       Boolean?
+  otherPhone                 String?
+  phone                      String?
+  preferredName              String?
+  primaryAddressIsBilling    Boolean?
+  primaryAddressIsMailing    Boolean?
+  primaryAddressIsOther      Boolean?
+  primaryAddressIsShipping   Boolean?
+  primaryCitizenship         String?
+  primaryLanguage            String?
+  referredByContact          String?
+  referredByUser             String?
+  reportsTo                  User?                     @relation(name: "ContactReportsToUser", fields: [reportsToId], references: [id])
+  reportsToId                String?
+  secondaryCitizenship       String?
+  secondaryLanguage          String?
+  shippingAddress            String?
+  sourceSystemId             String?
+  lastFourDigitSSN           String?
+  taxBracket                 TaxBracket?               @relation(name: "ContactTaxBracket", fields: [taxBracketId], references: [id])
+  taxBracketId               String?
+  taxId                      String?
+  title                      String?
+  twitter                    String?
+  weddingAnniversary         DateTime?
+
+  // --------- RELATIONSHIPS PERTAINING TO CONTACT -------------
+
+  CampaignMemberContact        CampaignMember[] @relation("CampaignMemberContact")
+  OpportunityReferredByContact Opportunity[]    @relation("OpportunityReferredByContact")
+  AssetContact                 Asset[]          @relation("AssetContact")
+  AccountPrimaryContact        Account[]        @relation("AccountPrimaryContact")
+  AccountReferredByContact     Account[]        @relation("AccountReferredByContact")
+  UserContact                  User[]           @relation("UserContact")
+
+}
+
+model ContactRecordType {
+  id   String @id @default(cuid())
+  name String @default("Individual") // Business: A business or an organization. Individual: A person who is a prospect or a client. Institution: An institution that is a prospect or a client.
+
+  // ------------ RELATIONSHIPS PERTAINING TO CONTACT RECORD TYPE ------------
+
+  ContactRecordType Contact[] @relation("ContactRecordType")
+}
+
+model Individual {
+  id                              String          @id @default(cuid())
+  individualType                  IndividualType? @relation(name: "IndividualType", fields: [individualTypeId], references: [id])
+  individualTypeId                String?
+  birthDate                       DateTime?
+  hasOptedOutGeoTracking          Boolean?
+  consumerCreditScore             Int?
+  consumerCreditScoreProviderName String?
+  convictionsCount                Int?
+  createdBy                       User?           @relation(name: "IndividualCreatedByUser", fields: [createdById], references: [id])
+  createdById                     String?
+  createdAt                       DateTime?       @default(now())
+  deathDate                       DateTime?
+  hasOptedOutSolicit              Boolean?
+  hasOptedOutProcessing           Boolean?
+  hasOptedOutProfiling            Boolean?
+  hasOptedOutTracking             Boolean?
+  sendIndividualData              Boolean?
+  shouldForget                    Boolean?
+  owner                           User?           @relation(name: "IndividualOwner", fields: [ownerId], references: [id])
+  ownerId                         String?
+  individualsAge                  Int?
+  influencerRating                Int?
+  isHomeOwner                     Boolean?
+  lastModifiedBy                  User?           @relation(name: "IndividualLastModifiedByUser", fields: [lastModifiedById], references: [id])
+  lastModifiedById                String?
+  lastModifiedDate                DateTime?
+  militaryService                 String?
+  name                            String?
+  childrenCount                   Int?
+  occupation                      String?
+  canStorePiiElsewhere            Boolean?
+  website                         String?
+
+  // --------- RELATIONSHIPS PERTAINING TO INDIVIDUAL -------------
+
+  ContactIndividual Contact[] @relation("ContactIndividual")
+  AccountIndividual Account[] @relation("AccountIndividual")
+  UserIndividual    User[]    @relation("UserIndividual")
+
+
+}
+
+model IndividualType {
+  id   String  @id @default(cuid())
+  name String?
+
+  // ------------ RELATIONSHIPS PERTAINING TO INDIVIDUAL TYPE -------------
+
+  IndividualType        Individual[] @relation("IndividualType")
+  ContactIndividualType Contact[]    @relation("ContactIndividualType")
+  AccountIndividualType Account[]    @relation("AccountIndividualType")
+}
+
+model FinancialAccount {
+  id                             String                @id @default(cuid())
+  accountNumber                  String?
+  address1                       String?
+  address2                       String?
+  applicationDate                DateTime?
+  apy                            Int?
+  assetRebalance                 Int?
+  availableCredit                Int?
+  averageBalance                 Int?
+  balance                        Int?
+  balanceLastStatement           Int?
+  bookedDate                     DateTime?
+  cashBalance                    Int?
+  cashLimit                      Int?
+  financialAccountChargesAndFees Int?
+  city                           String?
+  closureReason                  ClosureReason?        @relation(name: "FinancialAccountClosureReason", fields: [closureReasonId], references: [id])
+  closureReasonId                String?
+  collateralDesc                 String?
+  country                        String?
+  createdBy                      User?                 @relation(name: "FinancialAccountCreatedByUser", fields: [createdById], references: [id])
+  createdById                    String?
+  createdByMe                    Boolean?
+  currentPostedBalance           Int?
+  dailyWithdrawalLimit           Int?
+  closeDate                      DateTime?
+  openDate                       DateTime?
+  description                    String?
+  discretionary                  String?
+  drawPeriodMonths               Int?
+  escrowBalance                  Int?
+  expectedCloseDate              DateTime?
+  name                           String?
+  hardwareSerial                 String?
+  heldAway                       Boolean?
+  household                      Account?              @relation(name: "FinancialAccountHousehold", fields: [householdId], references: [id])
+  householdId                    String?
+  incomingVolume                 Int?
+  insurancePolicy                String? // fix later
+  insuredAmount                  Int?
+  interestRate                   String?
+  investmentObjectives           InvestmentObjectives? @relation(name: "FinancialAccountInvestmentObjectives", fields: [investmentObjectivesId], references: [id])
+  investmentObjectivesId         String?
+  jointOwner                     Account?              @relation(name: "FinancialAccountJointOwner", fields: [jointOwnerId], references: [id])
+  jointOwnerId                   String?
+  lastModifiedBy                 User?                 @relation(name: "FinancialAccountLastModifiedByUser", fields: [lastModifiedById], references: [id])
+  lastModifiedById               String?
+  lastTransactionDate            DateTime?
+  updatedAt                      DateTime?             @updatedAt
+  lienHolder                     String?
+  loanAmount                     Int?
+  loanEndDate                    DateTime?
+  loanTermMonths                 Int?
+  managed                        Boolean?
+  minimumBalance                 Int?
+  minimumPayment                 Int?
+  modelPortfolio                 ModelPortfolio?       @relation(name: "FinancialAccountModelPortfolio", fields: [modelPortfolioId], references: [id])
+  modelPortfolioId               String?
+  nextStatementDate              DateTime?
+  nickname                       String?
+  holdingCount                   Int? // calc
+  outgoingVolume                 Int?
+  overdraftProtection            Boolean?
+  overdraftLinkedAccount         Account?              @relation(name: "FinancialAccountOverdraftLinkedAccount", fields: [overdraftLinkedAccountId], references: [id])
+  overdraftLinkedAccountId       String?
+  overdraftAllowed               Boolean?
+  owner                          User?                 @relation(name: "FinancialAccountOwner", fields: [ownerId], references: [id])
+  ownerId                        String?
+  // ownerType                      String?
+  ownership                      OwnershipType?        @relation(name: "FinancialAccountOwnership", fields: [ownershipId], references: [id])
+  ownershipId                    String?
+  paperlessDelivery              Boolean?
+  paymentAmount                  Int?
+  paymentDueDate                 DateTime?
+  paymentFrequency               String?
+  pendingDeposits                Int?
+  pendingWithdrawals             Int?
+  performance1Yr                 Int?
+  performance3Yr                 Int?
+  performanceMTD                 Int?
+  performanceQTD                 Int?
+  performanceYTD                 Int?
+  policyTerm                     Int?
+  postalCode                     String?
+  premium                        Int?
+  primaryOwner                   Account?              @relation(name: "FinancialAccountPrimaryOwner", fields: [primaryOwnerId], references: [id])
+  primaryOwnerId                 String?
+  principalBalance               Int?
+  productName                    String?
+  rebalanceFrequency             Frequency?            @relation(name: "FinancialAccountRebalanceFrequency", fields: [rebalanceFrequencyId], references: [id])
+  rebalanceFrequencyId           String?
+  recordTypeName                 String?
+  recordType                     FinancialRecordType?  @relation(name: "FinancialAccountRecordType", fields: [recordTypeId], references: [id])
+  recordTypeId                   String?
+  renewalDate                    DateTime?
+  repaymentPeriodMonths          Int?
+  routingNumber                  String?
+  // serviceProvider                String?
+  serviceType                    ServiceType?          @relation(name: "FinancialAccountServiceType", fields: [serviceTypeId], references: [id])
+  serviceTypeId                  String?
+  // financialAccountSource         String?
+  // sourceSystemId                 String?
+  stage                          Stage?                @relation(name: "FinancialAccountStage", fields: [stageId], references: [id])
+  stageId                        String?
+  // state                          String?
+  statementFrequency             Frequency?            @relation(name: "FinancialAccountStatementFrequency", fields: [statementFrequencyId], references: [id])
+  statementFrequencyId           String?
+  status                         Status?               @relation(name: "FinancialAccountStatus", fields: [statusId], references: [id])
+  statusId                       String?
+  targetLimit                    Int?
+  taxID                          String?
+  taxStatus                      TaxStatus?            @relation(name: "FinancialAccountTaxStatus", fields: [taxStatusId], references: [id])
+  taxStatusId                    String?
+  timeHorizon                    TimeHorizon?          @relation(name: "FinancialAccountTimeHorizon", fields: [timeHorizonId], references: [id])
+  timeHorizonId                  String?
+  totalCreditLimit               Int?
+  financialAccountRole           FinancialAccountRole? @relation(name: "FinancialAccountRole", fields: [financialAccountRoleId], references: [id])
+  financialAccountRoleId         String?
+  financialAccountType           FinancialAccountType? @relation(name: "FinancialAccountType", fields: [financialAccountTypeId], references: [id])
+  financialAccountTypeId         String?
+  financialHolding               FinancialHolding?     @relation(name: "FinancialAccountFinancialHolding", fields: [financialHoldingId], references: [id])
+  financialHoldingId             String?
+  assetsAndLiabilities           AssetsAndLiabilities? @relation(name: "FinancialAccountAssetsAndLiabilities", fields: [assetsAndLiabilitiesId], references: [id])
+  assetsAndLiabilitiesId         String?
+  opportunity                    Opportunity?          @relation(name: "FinancialAccountOpportunity", fields: [opportunityId], references: [id])
+  opportunityId                  String?
+
+  // --------- RELATIONSHIPS PERTAINING TO FINANCIAL ACCOUNT -------------
+
+  OpportunityFinancialAccount          Opportunity[]          @relation(name: "OpportunityFinancialAccount")
+  AssetsAndLiabilitiesFinancialAccount AssetsAndLiabilities[] @relation(name: "AssetsAndLiabilitiesFinancialAccount")
+  FinancialHoldingFinancialAccount     FinancialHolding[]     @relation(name: "FinancialHoldingFinancialAccount")
+
+
+}
+
+model FinancialRecordType {
+  id   String  @id @default(cuid())
+  name String? // Auto Loan, Bank Account, Checking Account, Credit Card, General Account, HELOC, Insurance Policy, Investment Account, Loan Account, Mortgage, Savings Account, Treasury Service
+
+  // ---------- RELATIONSHIPS PERTAINING TO FINANCIAL RECORD TYPE ----------
+
+  FinancialAccountRecordType FinancialAccount[] @relation(name: "FinancialAccountRecordType")
+}
+
+model FinancialAccountType {
+  id   String  @id @default(cuid())
+  name String?
+
+  // ------------ RELATIONSHIPS PERTAINING TO FINANCIAL ACCOUNT TYPE ------------
+  FinancialAccountType FinancialAccount[] @relation(name: "FinancialAccountType")
+}
+
+model FinancialAccountRole {
+  id               String    @id @default(cuid())
+  active           Boolean?
+  createdById      String?
+  editable         Boolean?
+  endDate          DateTime?
+  lastModifiedBy   User?     @relation(name: "FinancialAccountRoleLastModifiedByUser", fields: [lastModifiedById], references: [id])
+  lastModifiedById String?
+  name             String?
+  startDate        DateTime?
+
+  // ---------- RELATIONSHIPS PERTAINING TO FINANCIAL ACCOUNT ROLE ----------
+
+  FinancialAccountRole FinancialAccount[] @relation(name: "FinancialAccountRole")
+}
+
+model FinancialRoleType {
+  id   String  @id @default(cuid())
+  name String? // Beneficiary,Accountant,Trustee,Corporation,Foundation,Grantor,Business Manager,Joint Owner,Primary Owner
+
+  // ------------ RELATIONSHIPS PERTAINING TO FINANCIAL ROLE TYPE ------------
+
+}
+
+model FinancialHolding {
+  id                    String               @id @default(cuid())
+  assetCategory         AssetCategory?       @relation(name: "FinancialHoldingAssetCategory", fields: [assetCategoryId], references: [id])
+  assetCategoryId       String?
+  assetCategorySector   AssetCategorySector? @relation(name: "FinancialHoldingAssetCategorySector", fields: [assetCategorySectorId], references: [id])
+  assetCategorySectorId String?
+  assetClass            AssetClass?          @relation(name: "FinancialHoldingAssetClass", fields: [assetClassId], references: [id])
+  assetClassId          String?
+  createdBy             User?                @relation(name: "FinancialHoldingCreatedByUser", fields: [createdById], references: [id])
+  createdById           String?
+  createdAt             DateTime?            @default(now())
+  updatedAt             DateTime?            @updatedAt
+  financialAccount      FinancialAccount?    @relation(name: "FinancialHoldingFinancialAccount", fields: [financialAccountId], references: [id])
+  financialAccountId    String?
+  name                  String?
+  gainLoss              Int?
+  household             Account?             @relation(name: "FinancialHoldingHouseholdAccount", fields: [householdId], references: [id])
+  householdId           String?
+  lastModifiedBy        User?                @relation(name: "FinancialHoldingLastModifiedByUser", fields: [lastModifiedById], references: [id])
+  lastModifiedById      String?
+  marketValue           Int?
+  percentChange         Int?
+  price                 Int?
+  primaryOwner          Account?             @relation(name: "FinancialHoldingPrimaryOwnerAccount", fields: [primaryOwnerId], references: [id])
+  primaryOwnerId        String?
+  purchasePrice         Int?
+  shares                Int?
+  // sourceSystemId        String?
+  securities            Securities?          @relation(name: "FinancialHoldingSecurities", fields: [securitiesId], references: [id])
+  securitiesId          String?
+  symbol                String?
+
+
+  // ------------- RELATIONSHIPS PERTAINING TO FINANCIAL HOLDING -------------
+
+  FinancialAccountFinancialHolding FinancialAccount[] @relation("FinancialAccountFinancialHolding")
+}
+
+model ServiceType {
+  id   String  @id @default(cuid())
+  name String? // Merchant Services, Lockbox, Positive Pay, Business Bill Pay, Wire Transfer, ACH, Account Analysis, Remote Deposit Capture, Purchase Cards, Credit Cards, Zero Balance Account, Bill Presentment, Controlled Disbursement, Sweep to Repo, Sweep to Line
+
+  // --------- RELATIONSHIPS PERTAINING TO SERVICE TYPE -------------
+
+  FinancialAccountServiceType FinancialAccount[] @relation(name: "FinancialAccountServiceType")
+}
+
+model Asset {
+  id                  String             @id @default(cuid())
+  Account             Account?           @relation(name: "AssetAccount", fields: [AccountId], references: [id])
+  AccountId           String?
+  assetLevel          String?
+  name                String?
+  owner               Account?           @relation(name: "AssetOwner", fields: [ownerId], references: [id])
+  ownerId             String?
+  assetProvidedBy     Account?           @relation(name: "AssetProvidedByAccount", fields: [assetProvidedById], references: [id])
+  assetProvidedById   String?
+  assetServicedBy     Account?           @relation(name: "AssetServicedByAccount", fields: [assetServicedById], references: [id])
+  assetServicedById   String?
+  isCompetitorProduct Boolean?
+  contact             Contact?           @relation(name: "AssetContact", fields: [contactId], references: [id])
+  contactId           String?
+  createdBy           User?              @relation(name: "AssetCreatedByUser", fields: [createdById], references: [id])
+  createdById         String?
+  description         String?
+  digitalAssetStatus  Boolean? // look into this on, off, warning, error
+  externalIdentifier  String?
+  installDate         DateTime?
+  isInternal          Boolean?
+  updatedAt           DateTime?          @updatedAt
+  lastModifiedBy      User?              @relation(name: "AssetLastModifiedByUser", fields: [lastModifiedById], references: [id])
+  lastModifiedById    String?
+  // locationId          String? // look into this
+  manufactureDate     DateTime?
+  // parent              Asset?    @relation(name: "Asset",fields: [parentId], references: [id])
+  // parentId            String? // look into this
+  price               Int?
+  // product2Id          String?
+  // productCode         String?
+  // productDescription  String?
+  // productFamily       String? // add product model
+  stockKeepingUnit    String?
+  purchaseDate        DateTime?
+  quantity            Int?
+  // rootAssetId         String?
+  serialNumber        String?
+  status              AssetStatus?       @relation(name: "AssetStatus", fields: [statusId], references: [id])
+  statusId            String?
+  statusReason        AssetStatusReason? @relation(name: "AssetStatusReason", fields: [statusReasonId], references: [id])
+  statusReasonId      String?
+  usageEndDate        DateTime?
+  // Asset               Asset[]   @relation(name: "Asset","AssetToAsset")
+}
+
+model AssetCategory {
+  id   String  @id @default(cuid())
+  name String? // U.S. Equity, Sector Equity, Allocation, International Equity, Alternative, Commodities, Taxable Bond, Municipal Bond
+
+  // --------- RELATIONSHIPS PERTAINING TO ASSET CATEGORY -------------
+
+  SecuritiesAssetCategory       Securities[]       @relation(name: "SecuritiesAssetCategory")
+  FinancialHoldingAssetCategory FinancialHolding[] @relation(name: "FinancialHoldingAssetCategory")
+}
+
+model AssetCategorySector {
+  id   String  @id @default(cuid())
+  name String? // Large Growth, Large Value, Large Blend, Small Growth, Small Value, Small Blend, Mid-Cap Growth, Mid-Cap Value, Mid-Cap Blend
+
+  // --------- RELATIONSHIPS PERTAINING TO ASSET CATEGORY SECTOR -------------
+
+  SecuritiesAssetCategorySector       Securities[]       @relation(name: "SecuritiesAssetCategorySector")
+  FinancialHoldingAssetCategorySector FinancialHolding[] @relation(name: "FinancialHoldingAssetCategorySector")
+
+}
+
+model AssetClass {
+  id   String  @id @default(cuid())
+  name String? // Equities, Fixed Income, Cash Equivalents, Alternative Investments
+
+  // --------- RELATIONSHIPS PERTAINING TO ASSET CLASS -------------
+
+  SecuritiesAssetClass       Securities[]       @relation(name: "SecuritiesAssetClass")
+  FinancialHoldingAssetClass FinancialHolding[] @relation(name: "FinancialHoldingAssetClass")
+}
+
+model AssetStatus {
+  id   String  @id @default(cuid())
+  name String? // Purchased, Shipped, Installed, Registered, Obsolete
+
+  // --------- RELATIONSHIPS PERTAINING TO ASSET STATUS -------------
+
+  AssetStatus Asset[] @relation(name: "AssetStatus")
+
+}
+
+model AssetStatusReason {
+  id   String  @id @default(cuid())
+  name String? // Online, Paused, Standby, Offline, Not Ready, Off
+
+  // --------- RELATIONSHIPS PERTAINING TO ASSET STATUS REASON -------------
+  AssetStatusReason Asset[] @relation(name: "AssetStatusReason")
+
+}
+
+model Securities {
+  id                    String               @id @default(cuid())
+  assetCategory         AssetCategory?       @relation(name: "SecuritiesAssetCategory", fields: [assetCategoryId], references: [id])
+  assetCategoryId       String?
+  assetCategorySector   AssetCategorySector? @relation(name: "SecuritiesAssetCategorySector", fields: [assetCategorySectorId], references: [id])
+  assetCategorySectorId String?
+  assetClass            AssetClass?          @relation(name: "SecuritiesAssetClass", fields: [assetClassId], references: [id])
+  assetClassId          String?
+  createdBy             User?                @relation(name: "SecuritiesCreatedByUser", fields: [createdById], references: [id])
+  createdById           String?
+  CUSIP                 String?
+  exchange              Exchange?            @relation(name: "SecuritiesExchange", fields: [exchangeId], references: [id])
+  exchangeId            String?
+  lastModifiedBy        User?                @relation(name: "SecuritiesLastModifiedByUser", fields: [lastModifiedById], references: [id])
+  lastModifiedById      String?
+  updatedAt             DateTime?            @updatedAt
+  owner                 User?                @relation(name: "SecuritiesOwner", fields: [ownerId], references: [id])
+  ownerId               String?
+  price                 Int?
+  // securitiesName   String? TODO: API LOOKUP REFACTOR
+  // securityId       String?
+  // sourceSystemId   String?
+  symbol                String?
+
+  // --------- RELATIONSHIPS PERTAINING TO SECURITIES -------------
+
+  FinancialHoldingSecurities FinancialHolding[] @relation(name: "FinancialHoldingSecurities")
+
+}
+
+model AssetsAndLiabilities {
+  id                               String                          @id @default(cuid())
+  amount                           Int?
+  name                             String?
+  createdById                      String?
+  createdAt                        DateTime?                       @default(now())
+  description                      String?
+  financialAccount                 FinancialAccount?               @relation(name: "AssetsAndLiabilitiesFinancialAccount", fields: [financialAccountId], references: [id])
+  financialAccountId               String?
+  household                        Account?                        @relation(name: "AssetsAndLiabilitiesHousehold", fields: [householdId], references: [id])
+  householdId                      String?
+  jointOwner                       Account?                        @relation(name: "AssetsAndLiabilitiesJointOwner", fields: [jointOwnerId], references: [id])
+  jointOwnerId                     String?
+  lastModifiedBy                   User?                           @relation(name: "AssetsAndLiabilitiesLastModifiedByUser", fields: [lastModifiedById], references: [id])
+  lastModifiedById                 String?
+  updatedAt                        DateTime?                       @updatedAt
+  owner                            User?                           @relation(name: "AssetsAndLiabilitiesOwner", fields: [ownerId], references: [id])
+  ownerId                          String?
+  ownership                        Ownership?                      @relation(name: "AssetsAndLiabilitiesOwnership", fields: [ownershipId], references: [id])
+  ownershipId                      String?
+  ownerType                        String?
+  primaryOwner                     Account?                        @relation(name: "AssetsAndLiabilitiesPrimaryOwner", fields: [primaryOwnerId], references: [id])
+  primaryOwnerId                   String?
+  assetsAndLiabilitiesRecordType   AssetsAndLiabilitiesRecordType? @relation(name: "AssetsAndLiabilitiesRecordType", fields: [assetsAndLiabilitiesRecordTypeId], references: [id])
+  assetsAndLiabilitiesRecordTypeId String?
+  assetsAndLiabilitiesSource       AssetsAndLiabilitiesSource?     @relation(name: "AssetsAndLiabilitiesSource", fields: [assetsAndLiabilitiesSourceId], references: [id])
+  assetsAndLiabilitiesSourceId     String?
+  assetsAndLiabilitiesType         AssetsAndLiabilitiesType?       @relation(name: "AssetsAndLiabilitiesType", fields: [assetsAndLiabilitiesTypeId], references: [id])
+  assetsAndLiabilitiesTypeId       String?
+
+  // --------- RELATIONSHIPS PERTAINING TO ASSETS AND LIABILITIES -------------
+  FinancialAccountAssetsAndLiabilities FinancialAccount[] @relation(name: "FinancialAccountAssetsAndLiabilities")
+}
+
+model AssetsAndLiabilitiesRecordType {
+  id          String  @id @default(cuid())
+  name        String? // Assets, Liabilities
+  description String? // Assets: Asset not represented in financial accounts, such as real estate or collectibles, Liabilities: Debt owed, such as a mortgage
+
+  // --------- RELATIONSHIPS PERTAINING TO ASSETS AND LIABILITIES RECORD TYPE -------------
+
+  AssetsAndLiabilitiesRecordType AssetsAndLiabilities[] @relation(name: "AssetsAndLiabilitiesRecordType")
+
+}
+
+model AssetsAndLiabilitiesSource {
+  id          String  @id @default(cuid())
+  name        String? // Yodlee, Manual Entry
+  description String?
+
+  // --------- RELATIONSHIPS PERTAINING TO ASSETS AND LIABILITIES SOURCE -------------
+
+  AssetsAndLiabilitiesSource AssetsAndLiabilities[] @relation(name: "AssetsAndLiabilitiesSource")
+
+}
+
+model AssetsAndLiabilitiesType {
+  id          String  @id @default(cuid())
+  name        String? // Auto Loan, Mortgage, Other, Personal Loan, Real Estate, Equipment, Automobile, Collection, Gold, Jewelry, Cash
+  description String?
+
+  // --------- RELATIONSHIPS PERTAINING TO ASSETS AND LIABILITIES TYPE -------------
+
+  AssetsAndLiabilitiesType AssetsAndLiabilities[] @relation(name: "AssetsAndLiabilitiesType")
+
+}
+
+model FinancialGoal {
+  id                  String               @id @default(cuid())
+  actualValue         Int?
+  completionDate      DateTime?
+  createdBy           User?                @relation(name: "FinancialGoalCreatedByUser", fields: [createdById], references: [id])
+  createdById         String?
+  description         String?
+  name                String?
+  household           Account?             @relation(name: "FinancialGoalHousehold", fields: [householdId], references: [id])
+  householdId         String?
+  initialValue        Int?
+  lastModifiedBy      User?                @relation(name: "FinancialGoalLastModifiedByUser", fields: [lastModifiedById], references: [id])
+  lastModifiedById    String?
+  updatedAt           DateTime?            @updatedAt
+  owner               User?                @relation(name: "FinancialGoalOwner", fields: [ownerId], references: [id])
+  ownerId             String?
+  primaryOwner        Account?             @relation(name: "FinancialGoalPrimaryOwner", fields: [primaryOwnerId], references: [id])
+  primaryOwnerId      String?
+  // sourceSystemId      String?
+  status              FinancialGoalStatus? @relation(name: "FinancialGoalStatus", fields: [statusId], references: [id])
+  statusId            String?
+  targetDate          DateTime?
+  targetValue         Int?
+  financialGoalType   FinancialGoalType?   @relation(name: "FinancialGoalType", fields: [financialGoalTypeId], references: [id])
+  financialGoalTypeId String?
+}
+
+model FinancialGoalStatus {
+  id   String  @id @default(cuid())
+  name String? // Not Started, In Progress, Completed
+
+  // --------- RELATIONSHIPS PERTAINING TO FINANCIAL GOAL STATUS -------------
+
+  FinancialGoalType FinancialGoal[] @relation(name: "FinancialGoalStatus")
+}
+
+model FinancialGoalType {
+  id   String  @id @default(cuid())
+  name String? // Retirement, Home Purchase, Education, Other
+
+  // --------- RELATIONSHIPS PERTAINING TO FINANCIAL GOAL TYPE -------------
+
+  FinancialGoalType FinancialGoal[] @relation(name: "FinancialGoalType")
+
+}
+
+model Opportunity {
+  id                       String                 @id @default(cuid())
+  account                  Account?               @relation(name: "OpportunityAccount", fields: [accountId], references: [id])
+  accountId                String?
+  amount                   Int?
+  budgetConfirmed          Boolean?
+  closeDate                DateTime?
+  contract                 Contract?              @relation(name: "OpportunityContract", fields: [contractId], references: [id])
+  contractId               String?
+  createdBy                User?                  @relation(name: "OpportunityCreatedByUser", fields: [createdById], references: [id])
+  createdById              String?
+  description              String?
+  discoveryCompleted       Boolean?
+  expectedRevenue          Int?
+  referredByContact        Contact?               @relation(name: "OpportunityReferredByContact", fields: [referredByContactId], references: [id])
+  referredByContactId      String?
+  financialAccount         FinancialAccount?      @relation(name: "OpportunityFinancialAccount", fields: [financialAccountId], references: [id])
+  financialAccountId       String?
+  household                Account?               @relation(name: "OpportunityHousehold", fields: [householdId], references: [id])
+  householdId              String?
+  referredByUser           User?                  @relation(name: "OpportunityReferredByUser", fields: [referredByUserId], references: [id])
+  referredByUserId         String?
+  lastModifiedBy           User?                  @relation(name: "OpportunityLastModifiedByUser", fields: [lastModifiedById], references: [id])
+  lastModifiedById         String?
+  updatedAt                DateTime?              @updatedAt
+  leadSource               LeadSource?            @relation(name: "OpportunityLeadSource", fields: [leadSourceId], references: [id])
+  leadSourceId             String?
+  lossReason               OpportunityLossReason? @relation(name: "OpportunityLossReason", fields: [lossReasonId], references: [id])
+  lossReasonId             String?
+  nextStep                 String?
+  opportunityName          String?
+  owner                    User?                  @relation(name: "OpportunityOwner", fields: [ownerId], references: [id])
+  ownerId                  String?
+  recordType               OpportunityRecordType? @relation(name: "OpportunityRecordType", fields: [recordTypeId], references: [id])
+  recordTypeId             String?
+  iqScore                  Int?
+  // pricebook2Id             String?
+  campaign                 Campaign?              @relation(name: "OpportunityCampaign", fields: [campaignId], references: [id])
+  campaignId               String?
+  isPrivate                Boolean?
+  probability              Int?
+  totalOpportunityQuantity Int?
+  roiAnalysisCompleted     Boolean?
+  // sourceId                 String?
+  stageName                OpportunityStageName?  @relation(name: "OpportunityStageName", fields: [stageNameId], references: [id])
+  stageNameId              String?
+  syncedQuoteId            String?
+  opportunityType          OpportunityType?       @relation(name: "OpportunityType", fields: [opportunityTypeId], references: [id])
+  opportunityTypeId        String?
+
+  // --------- RELATIONSHIPS PERTAINING TO OPPORTUNITY -------------
+
+  FinancialAccountOpportunity FinancialAccount[] @relation("FinancialAccountOpportunity")
+}
+
+model OpportunityRecordType {
+  id          String  @id @default(cuid())
+  name        String? @default("General") // General, Opportunity (Wallet Share), Retirement Planning
+  description String?
+
+  // --------- RELATIONSHIPS PERTAINING TO OPPORTUNITY RECORD TYPE -------------
+
+  OpportunityRecordType Opportunity[] @relation(name: "OpportunityRecordType")
+
+}
+
+model OpportunityType {
+  id   String  @id @default(cuid())
+  name String? @default("New Business") // Existing Business, New Business
+
+  // --------- RELATIONSHIPS PERTAINING TO OPPORTUNITY TYPE -------------
+  OpportunityType Opportunity[] @relation(name: "OpportunityType")
+
+}
+
+model OpportunityLossReason {
+  id   String  @id @default(cuid())
+  name String? // Lost to Competitor, No Budget / Lost Funding, No Decision / Non-Responsive, Price, Other
+
+  // --------- RELATIONSHIPS PERTAINING TO OPPORTUNITY LOSS REASON -------------
+
+  OpportunityLossReason Opportunity[] @relation(name: "OpportunityLossReason")
+}
+
+model OpportunityStageName {
+  id               String  @id @default(cuid())
+  name             String? @default("Qualification") // Qualification, Needs Analysis, Discovery, Proposal, Negotiation, Develop Proposal, Client Presentation, Initiate Transfer, Closed Won, Closed Lost
+  probability      Int?    @default(10) // 10%, 35%, 25%, 75%, 90%, 50%, 75%, 90%, 100%, 0%
+  foreCastCategory String? @default("Pipeline") // Pipeline, Pipeline, Pipeline, Best Case, Commit, Pipeline, Pipeline, Pipeline, Closed, Omitted
+
+  // ------------- RELATIONSHIPS PERTAINING TO OPPORTUNITY STAGE NAME -------------
+
+  OpportunityStageName Opportunity[] @relation(name: "OpportunityStageName")
+}
+
+model LeadSource {
+  id   String  @id @default(cuid())
+  name String? // Advertisement, Customer Event, Employee Referral, Google AdWords, Other, Partner, Purchased List, Trade Show, Webinar, Website
+
+
+  // --------- RELATIONSHIPS PERTAINING TO LEAD SOURCE -------------
+
+  CampaignMemberLeadSource     CampaignMember[] @relation(name: "CampaignMemberLeadSource")
+  OpportunityLeadSource        Opportunity[]    @relation(name: "OpportunityLeadSource")
+  ContactCreatedFromLeadSource Contact[]        @relation(name: "ContactCreatedFromLeadSource")
+  ContactLeadSource            Contact[]        @relation(name: "ContactLeadSource")
+  AccountLeadSource            Account[]        @relation(name: "AccountLeadSource")
+
+}
+
+model Campaign {
+  id                                String          @id @default(cuid())
+  isActive                          Boolean?
+  actualCost                        Int?
+  hierarchyActualCost               Int?
+  budgetedCost                      Int?
+  hierarchyBudgetedCost             Int?
+  // campaignMemberRecordType          CampaignMemberRecordType? @relation(name: "CampaignMemberRecordType", fields: [recordTypeId], references: [id])
+  // campaignMemberRecordTypeId        String? // look into this
+  name                              String?
+  ownerId                           String?
+  numberOfContacts                  Int?
+  hierarchyNumberOfContacts         Int?
+  numberOfConvertedLeads            Int?
+  hierarchyNumberOfConvertedLeads   Int?
+  createdBy                         User?           @relation(name: "CampaignCreatedByUser", fields: [createdById], references: [id])
+  createdById                       String?
+  description                       String?
+  endDate                           DateTime?
+  expectedResponse                  String?
+  expectedRevenue                   Int?
+  hierarchyExpectedRevenue          Int?
+  lastModifiedBy                    User?           @relation(name: "CampaignLastModifiedByUser", fields: [lastModifiedById], references: [id])
+  lastModifiedById                  String?
+  updateAt                          DateTime?       @updatedAt
+  numberOfLeads                     Int?
+  hierarchyNumberOfLeads            Int?
+  numberSent                        Int?
+  hierarchyNumberSent               Int?
+  numberOfOpportunities             Int?
+  hierarchyNumberOfOpportunities    Int?
+  // parentId                       String?  parent campaign??
+  numberOfResponses                 Int?
+  hierarchyNumberOfResponses        Int?
+  startDate                         DateTime?
+  amountAllOpportunities            Int?
+  hierarchyAmountAllOpportunities   Int?
+  amountWonOpportunities            Int?
+  hierarchyAmountWonOpportunities   Int?
+  numberOfWonOpportunities          Int?
+  hierarchyNumberOfWonOpportunities Int?
+  campaignStatus                    CampaignStatus? @relation(name: "CampaignStatus", fields: [campaignStatusId], references: [id])
+  campaignStatusId                  String?
+  campaignType                      CampaignType?   @relation(name: "CampaignType", fields: [campaignTypeId], references: [id])
+  campaignTypeId                    String?
+  campaignMember                    CampaignMember? @relation(name: "CampaignMember", fields: [campaignMemberId], references: [id])
+  campaignMemberId                  String?
+
+
+  // --------- RELATIONSHIPS PERTAINING TO CAMPAIGN -------------
+
+  CampaignMemberCampaign CampaignMember[] @relation(name: "CampaignMemberCampaign")
+  OpportunityCampaign    Opportunity[]    @relation(name: "OpportunityCampaign")
+}
+
+model CampaignStatus {
+  id   String  @id @default(cuid())
+  name String? // In Progress, Completed, Aborted, Planned
+
+  // --------- RELATIONSHIPS PERTAINING TO CAMPAIGN STATUS -------------
+
+  CampaignStatus Campaign[] @relation(name: "CampaignStatus")
+}
+
+model CampaignType {
+  id   String  @id @default(cuid())
+  name String? // Event, Demo Signup / Trial, Email, Referral Program, Search, Social Media, Thought Leadership, Website Direct, Other
+
+  // --------- RELATIONSHIPS PERTAINING TO CAMPAIGN TYPE -------------
+
+  CampaignType Campaign[] @relation(name: "CampaignType")
+}
+
+model CampaignMember {
+  id                 String                @id @default(cuid())
+  campaign           Campaign?             @relation(name: "CampaignMemberCampaign", fields: [campaignId], references: [id])
+  campaignId         String?
+  city               String?
+  companyOrAccount   String?
+  contact            Contact?              @relation(name: "CampaignMemberContact", fields: [contactId], references: [id])
+  contactId          String?
+  country            String?
+  createdBy          User?                 @relation(name: "CampaignMemberCreatedByUser", fields: [createdById], references: [id])
+  createdById        String?
+  createdAt          DateTime?             @default(now())
+  description        String?
+  doNotCall          Boolean?
+  email              String?
+  fax                String?
+  hasOptedOutOfEmail Boolean?
+  firstName          String?
+  firstRespondedDate DateTime?
+  lastModifiedBy     User?                 @relation(name: "CampaignMemberLastModifiedByUser", fields: [lastModifiedById], references: [id])
+  lastModifiedById   String?
+  updatedAt          DateTime?             @updatedAt
+  lastName           String?
+  leadId             String?
+  leadSource         LeadSource?           @relation(name: "CampaignMemberLeadSource", fields: [leadSourceId], references: [id])
+  leadSourceId       String?
+  mobilePhone        String?
+  phone              String?
+  hasResponded       Boolean?
+  salutation         Salutation?           @relation(name: "CampaignMemberSalutation", fields: [salutationId], references: [id])
+  salutationId       String?
+  state              String?
+  status             CampaignMemberStatus? @relation(name: "CampaignMemberStatus", fields: [statusId], references: [id])
+  statusId           String?
+  street             String?
+  title              String?
+  postalCode         String?
+
+  // ------------ RELATIONSHIPS PERTAINING TO CAMPAIGN MEMBER -------------
+
+  CampaignMember Campaign[] @relation(name: "CampaignMember")
+}
+
+model CampaignMemberStatus {
+  id   String  @id @default(cuid())
+  name String? // Responded, Sent
+
+  // --------- RELATIONSHIPS PERTAINING TO CAMPAIGN MEMBER STATUS -------------
+
+  CampaignMemberStatus CampaignMember[] @relation(name: "CampaignMemberStatus")
+}
+
+model Salutation {
+  id   String  @id @default(cuid())
+  name String? // Mr., Ms., Mrs., Dr., Prof.
+
+  // --------- RELATIONSHIPS PERTAINING TO SALUTATION -------------
+
+  CampaignMemberSalutation CampaignMember[] @relation(name: "CampaignMemberSalutation")
+}
+
+model Contract {
+  id                  String          @id @default(cuid())
+  account             Account?        @relation(name: "ContractAccount", fields: [accountId], references: [id])
+  accountId           String?
+  activatedBy         User?           @relation(name: "ContractActivatedByUser", fields: [activatedById], references: [id])
+  activatedById       String?
+  activatedDate       DateTime?
+  billingAddress      String?
+  companySigned       User?           @relation(name: "ContractCompanySignedByUser", fields: [companySignedById], references: [id])
+  companySignedById   String?
+  companySignedDate   DateTime?
+  endDate             DateTime?
+  name                String?
+  contractNumber      String?
+  owner               User?           @relation(name: "ContractOwner", fields: [ownerId], references: [id])
+  ownerId             String?
+  startDate           DateTime?
+  contractTerm        Int?
+  createdBy           User?           @relation(name: "ContractCreatedByUser", fields: [createdById], references: [id])
+  createdById         String?
+  createdAt           DateTime?       @default(now())
+  customerSigned      User?           @relation(name: "ContractCustomerSignedByUser", fields: [customerSignedById], references: [id])
+  customerSignedById  String?
+  customerSignedDate  DateTime?
+  customerSignedTitle String?
+  description         String?
+  lastModifiedBy      User?           @relation(name: "ContractLastModifiedByUser", fields: [lastModifiedById], references: [id])
+  lastModifiedById    String?
+  updatedAt           DateTime?       @updatedAt
+  // ownerExpirationNotice Boolean?
+  // pricebook2Id     String? // look into this
+  shippingAddress     String?
+  specialTerms        String?
+  status              ContractStatus? @relation(name: "ContractStatus", fields: [statusId], references: [id])
+  statusId            String?
+
+  // --------- RELATIONSHIPS PERTAINING TO CONTRACT -------------
+
+  OpportunityContract Opportunity[] @relation(name: "OpportunityContract")
+}
+
+model ContractStatus {
+  id   String  @id @default(cuid())
+  name String? // In Approval Process, Activated, Draft
+
+  // ------------ RELATIONSHIPS PERTAINING TO CONTRACT STATUS -------------
+
+  status Contract[] @relation(name: "ContractStatus")
+
+}
+
+model BranchCode {
+  id   String  @id @default(cuid())
+  name String? // 3MXD, 8TRN, 230P, etc.
+
+  // ------------ RELATIONSHIPS PERTAINING TO BRANCH CODE -------------
+  Account Account[] @relation("AccountBranchCode")
+}
+
+model ClientCategory {
+  id   String  @id @default(cuid())
+  name String? // Diamond, Platinum, Gold, Silver, Bronze
+
+  // ------------ RELATIONSHIPS PERTAINING TO CLIENT CATEGORY -------------
+  Account Account[] @relation("AccountClientCategory")
+}
+
+model CommunicationPreferences {
+  id   String  @id @default(cuid())
+  name String? // Email, Phone, SMS
+
+  // ------------ RELATIONSHIPS PERTAINING TO COMMUNICATION PREFERENCES -------------
+
+  ContactCommunicationPreferences Contact[] @relation(name: "ContactCommunicationPreferences")
+
+  Account Account[] @relation("AccountCommunicationPreferences")
+}
+
+model ContactPreference {
+  id   String  @id @default(cuid())
+  name String? // Email, Phone, Mobile
+
+  // ------------ RELATIONSHIPS PERTAINING TO CONTACT PREFERENCE -------------
+
+  ContactPreference Contact[] @relation(name: "ContactPreference")
+
+  Account Account[] @relation("AccountContactPreference")
+}
+
+model Country {
+  id   String  @id @default(cuid())
+  name String? // see google doc
+
+  // ------------ RELATIONSHIPS PERTAINING TO COUNTRY -------------
+
+  ContactCountryOfBirth              Contact[] @relation(name: "ContactCountryOfBirth")
+  ContactCountryOfResidence          Contact[] @relation(name: "ContactCountryOfResidence")
+  AccountPrimaryCitizenshipCountry   Account[] @relation(name: "AccountPrimaryCitizenshipCountry")
+  AccountSecondaryCitizenshipCountry Account[] @relation(name: "AccountSecondaryCitizenshipCountry")
+
+  Account Account[] @relation("AccountCountryOfBirth")
+}
+
+model CreditRating {
+  id   String  @id @default(cuid())
+  name String?
+
+  // ------------ RELATIONSHIPS PERTAINING TO CREDIT RATING -------------
+  Account Account[] @relation("AccountCreditRating")
+}
+
+model FinancialInterests {
+  id   String  @id @default(cuid())
+  name String? // Municipal Bonds, Fixed Income, Energy, Technology, Retirement, College Planning
+
+  // --------- RELATIONSHIPS PERTAINING TO FINANCIAL INTERESTS -------------
+  Account Account[] @relation("AccountFinancialInterests")
+}
+
+model Gender {
+  id   String  @id @default(cuid())
+  name String? // Male, Female, Other
+
+  // --------- RELATIONSHIPS PERTAINING TO GENDER -------------
+
+  ContactGender Contact[] @relation(name: "ContactGender")
+
+  Account Account[] @relation("AccountGender")
+}
+
+model HomeOwnership {
+  id   String  @id @default(cuid())
+  name String? // Rent, Own, Other
+
+  // --------- RELATIONSHIPS PERTAINING TO HOME OWNERSHIP -------------
+
+  ContactHomeOwnership Contact[] @relation(name: "ContactHomeOwnership")
+
+  Account Account[] @relation("Account")
+}
+
+model Industry {
+  id   String  @id @default(cuid())
+  name String? // Agriculture, Apparel, Banking, Biotechnology, Chemicals, Communications, Construction, Consulting, Education, Electronics, Energy, Engineering, Entertainment, Environmental, Finance, Food & Beverage, Government, Healthcare, Hospitality, Insurance, Machinery, Manufacturing, Media, Not For Profit, Other, Recreation, Retail, Shipping, Technology, Telecommunications, Transportation, Utilities
+
+  // --------- RELATIONSHIPS PERTAINING TO INDUSTRY -------------
+
+  Account Account[] @relation("AccountIndustry")
+}
+
+model InvestmentExperience {
+  id   String  @id @default(cuid())
+  name String? // Experienced, Moderately Experienced, Moderately Inexperienced, Inexperienced
+
+  // ------------ RELATIONSHIPS PERTAINING TO INVESTMENT EXPERIENCE -------------
+
+
+  Account Account[] @relation("AccountInvestmentExperience")
+}
+
+model InvestmentObjectives {
+  id   String  @id @default(cuid())
+  name String? // Conservative Income, Income, Balanced, Growth, Aggressive Growth
+
+  // --------- RELATIONSHIPS PERTAINING TO INVESTMENT OBJECTIVES -------------
+
+  FinancialAccountInvestmentObjectives FinancialAccount[] @relation(name: "FinancialAccountInvestmentObjectives")
+
+  Account Account[] @relation("AccountInvestmentObjectives")
+}
+
+model KycStatus {
+  id   String  @id @default(cuid())
+  name String? // Required, Overdue, In Queue, In progress, Completed - Valid, Completed - Invalid, Expired
+
+  // --------- RELATIONSHIPS PERTAINING TO KYC STATUS -------------
+
+  Account Account[] @relation("AccountKycStatus")
+}
+
+model ChannelInterface {
+  id   String  @id @default(cuid())
+  name String? // Mobile, Web, Branch, Call Center, Other
+
+  // ------------ RELATIONSHIPS PERTAINING TO CHANNEL INTERFACE -------------
+
+  ContactMostUsedChannelInterface Contact[] @relation(name: "ContactMostUsedChannelInterface")
+  AccountMostUsedChannelInterface Account[] @relation(name: "AccountMostUsedChannelInterface")
+  AccountLastUsedChannelInterface Account[] @relation(name: "AccountLastUsedChannelInterface")
+
+}
+
+model MaritalStatus {
+  id   String  @id @default(cuid())
+  name String? // Single, Married, Separated, Divorced, Widowed
+
+  // ------------ RELATIONSHIPS PERTAINING TO MARITAL STATUS -------------
+
+  ContactMaritalStatus Contact[] @relation(name: "ContactMaritalStatus")
+  AccountMaritalStatus Account[] @relation(name: "AccountMaritalStatus")
+
+}
+
+model LifeEvent {
+  id   String  @id @default(cuid())
+  name String? // Higher Education, Enter Workforce, Returning to Workforce, First Home Purchase, Children, Renovations, Moving, Critical Family Event, Promotion, Retirement
+
+  // ------------ RELATIONSHIPS PERTAINING TO LIFE EVENT -------------
+
+  ContactLifeEvent Contact[] @relation(name: "ContactLifeEvent")
+  AccountLifeEvent Account[] @relation(name: "AccountLifeEvent")
+
+}
+
+model OperatingHours {
+  id               String    @id @default(cuid())
+  createdBy        User?     @relation(name: "OperatingHoursCreatedByUser", fields: [createdById], references: [id])
+  createdById      String?
+  createdAt        DateTime? @default(now())
+  description      String?
+  lastModifiedBy   User?     @relation(name: "OperatingHoursLastModifiedByUser", fields: [lastModifiedById], references: [id])
+  lastModifiedById String?
+  updatedAt        DateTime? @updatedAt
+  name             String? // 8:00am - 5:00pm (Mon-Fri) | 8:00am - 5:00pm (Sat-Sun) | 8:00am - 5:00pm (Mon-Fri) | 8:00am - 5:00pm (Sat-Sun)
+  timeZone         TimeZone? @relation(name: "OperatingHoursTimeZone", fields: [timeZoneId], references: [id])
+  timeZoneId       String?
+
+  // ------------- RELATIONSHIPS PERTAINING TO OPERATING HOURS -------------
+
+  AccountOperatingHours Account[] @relation(name: "AccountOperatingHours")
+}
+
+model TimeZone {
+  id   String  @id @default(cuid())
+  name String?
+
+  // ------------- RELATIONSHIPS PERTAINING TO TIMEZONE -------------
+
+  operatingHours  OperatingHours[] @relation(name: "OperatingHoursTimeZone")
+  ContactTimeZone Contact[]        @relation(name: "ContactTimeZone")
+  UserTimeZone    User[]           @relation(name: "UserTimeZone")
+  Account         Account[]        @relation("AccountTimeZone")
+}
+
+model Ownership {
+  id   String  @id @default(cuid())
+  name String? // Public, Private, Subsidiary, Other
+
+  // --------- RELATIONSHIPS PERTAINING TO OWNERSHIP -------------
+
+  AssetsAndLiabilitiesOwnership AssetsAndLiabilities[] @relation(name: "AssetsAndLiabilitiesOwnership")
+  AccountOwnership              Account[]              @relation(name: "AccountOwnership")
+}
+
+model PersonalInterests {
+  id   String  @id @default(cuid())
+  name String? // Cooking, College Basketball, Environment, Hiking, Biking, Wine
+
+  // --------- RELATIONSHIPS PERTAINING TO PERSONAL INTERESTS -------------
+
+  AccountPersonalInterests Account[] @relation(name: "AccountPersonalInterests")
+
+}
+
+model Language {
+  id   String  @id @default(cuid())
+  name String?
+
+  // --------- RELATIONSHIPS PERTAINING TO LANGUAGE -------------
+
+  ContactLanguagesSpoken   Contact[] @relation(name: "ContactLanguagesSpoken")
+  AccountPrimaryLanguage   Account[] @relation(name: "AccountPrimaryLanguage")
+  AccountSecondaryLanguage Account[] @relation(name: "AccountSecondaryLanguage")
+  UserLanguage             User[]    @relation(name: "UserLanguage")
+
+}
+
+model Rating {
+  id   String  @id @default(cuid())
+  name String? // Hot, Warm, Cold
+
+  // --------- RELATIONSHIPS PERTAINING TO RATING -------------
+  AccountRating Account[] @relation(name: "AccountRating")
+
+}
+
+model ReviewFrequency {
+  id   String  @id @default(cuid())
+  name String? // Monthly, Quarterly, Annually 
+
+  // --------- RELATIONSHIPS PERTAINING TO REVIEW FREQUENCY -------------
+  AccountReviewFrequency Account[] @relation(name: "AccountReviewFrequency")
+
+}
+
+model RiskTolerance {
+  id   String  @id @default(cuid())
+  name String? // Aggressive, Conservative, Moderate, None
+
+  // --------- RELATIONSHIPS PERTAINING TO RISK TOLERANCE -------------
+
+  AccountRiskTolerance Account[] @relation(name: "AccountRiskTolerance")
+
+}
+
+model ServiceModel {
+  id   String  @id @default(cuid())
+  name String? // Basic, Standard, Advanced, Enterprise + Tier 1, Tier 2, Tier 3 (maybe)
+
+  // ------------ RELATIONSHIPS PERTAINING TO SERVICE MODEL ------------
+
+  AccountServiceModel Account[] @relation(name: "AccountServiceModel")
+
+}
+
+model TaxBracket {
+  id   String  @id @default(cuid())
+  name String? // 10%, 15%, 25%, 28%, 33%, 35%
+
+  // --------- RELATIONSHIPS PERTAINING TO TAX BRACKET -------------
+
+  ContactTaxBracket Contact[] @relation(name: "ContactTaxBracket")
+  AccountTaxBracket Account[] @relation(name: "AccountTaxBracket")
+
+}
+
+model TimeHorizon {
+  id   String  @id @default(cuid())
+  name String? // Long Term, Medium Term, Short Term
+
+  // --------- RELATIONSHIPS PERTAINING TO TIME HORIZON -------------
+
+  FinancialAccountTimeHorizon FinancialAccount[] @relation(name: "FinancialAccountTimeHorizon")
+  AccountTimeHorizon          Account[]          @relation(name: "AccountTimeHorizon")
+}
+
+model ClosureReason {
+  id   String  @id @default(cuid())
+  name String? // Account Maintenance Fees, Account no longer needed, Moved out of the country, Not able to maintain account, Others
+
+  // --------- RELATIONSHIPS PERTAINING TO CLOSURE REASON -------------
+
+  FinancialAccountClosureReason FinancialAccount[] @relation(name: "FinancialAccountClosureReason")
+}
+
+model ModelPortfolio {
+  id   String  @id @default(cuid())
+  name String? // Conservative, Moderate, Balanced, Growth, Aggressive
+
+  // ------------ RELATIONSHIPS PERTAINING TO MODEL PORTFOLIO ------------
+
+  FinancialAccountModelPortfolio FinancialAccount[] @relation(name: "FinancialAccountModelPortfolio")
+}
+
+model OwnershipType {
+  id   String  @id @default(cuid())
+  name String? // Individual, Joint, Trust
+
+  // --------- RELATIONSHIPS PERTAINING TO OWNERSHIP TYPE -------------
+
+  FinancialAccountOwnership FinancialAccount[] @relation(name: "FinancialAccountOwnership")
+}
+
+model Frequency {
+  id   String  @id @default(cuid())
+  name String? // Biweekly, Monthly, Quarterly, Annually, Semiannually
+
+  // ------------ RELATIONSHIPS PERTAINING TO FREQUENCY ------------
+  FinancialAccountStatementFrequency FinancialAccount[] @relation(name: "FinancialAccountStatementFrequency")
+  FinancialAccountRebalanceFrequency FinancialAccount[] @relation(name: "FinancialAccountRebalanceFrequency")
+}
+
+model Stage {
+  id   String  @id @default(cuid())
+  name String? // Pre-Qualification, Qualification, Post-Qualification, Closed, Qualification, Underwriting, Proposal, Approval/Loan committee, Processing, Doc Prep, Doc Review, Closing, Booked, Complete, Hold, Dormant, Active, Escheat, Charged off, Ordered, Setup Complete
+
+  // --------- RELATIONSHIPS PERTAINING TO STAGE -------------
+
+  FinancialAccountStage FinancialAccount[] @relation(name: "FinancialAccountStage")
+}
+
+model Status {
+  id   String  @id @default(cuid())
+  name String? // Opened, Closed, On Hold, Pending
+
+  // --------- RELATIONSHIPS PERTAINING TO STATUS -------------
+
+  FinancialAccountStatus FinancialAccount[] @relation(name: "FinancialAccountStatus")
+}
+
+model TaxStatus {
+  id   String  @id @default(cuid())
+  name String? // Qualified, Nonqualified
+
+  // --------- RELATIONSHIPS PERTAINING TO TAX STATUS -------------
+
+  FinancialAccountTaxStatus FinancialAccount[] @relation(name: "FinancialAccountTaxStatus")
+}
+
+model Exchange {
+  id   String  @id @default(cuid())
+  name String? // NASDAQ, NYSE, AMEX, Other
+
+  // --------- RELATIONSHIPS PERTAINING TO EXCHANGE -------------
+
+  SecuritiesExchange Securities[] @relation(name: "SecuritiesExchange")
 }
