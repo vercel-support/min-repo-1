@@ -1,0 +1,13 @@
+{
+  "regions": ["sfo"],
+  "functions": {
+    "pages/api/graphql.ts": {
+      "memory": 3008,
+      "maxDuration": 60
+    },
+    "pages/api/auth/[...nextauth]": {
+      "memory": 3008,
+      "maxDuration": 60
+    }
+  }
+}
