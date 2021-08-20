@@ -1,7 +1,7 @@
 {
   "regions": ["sfo"],
   "functions": {
-    "pages/api/graphql.ts": {
+    "api/graphql.ts": {
       "memory": 3008,
       "maxDuration": 60
     },
